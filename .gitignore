@@ -1,0 +1,26 @@
+# Dependencies
+/node_modules
+/.npm-cache
+
+# Next.js output
+/.next
+/out
+
+# Test and tooling output
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Local configuration and secrets
+.env*
+!.env.example
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

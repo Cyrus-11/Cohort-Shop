@@ -1,0 +1,131 @@
+.hero {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  padding: clamp(1.75rem, 5vw, 4rem);
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.line { display: block; }
+
+.mark {
+  position: relative;
+  z-index: 0;
+  display: inline-block;
+  padding-inline: 0.2em;
+  margin-left: -0.1em;
+}
+
+.mark::before {
+  content: "";
+  position: absolute;
+  inset: 0.08em 0 0.02em;
+  z-index: -1;
+  background: var(--color-accent);
+  transform: rotate(-2deg);
+}
+
+.markWhite::before { background: var(--color-background); transform: rotate(2deg); }
+
+.copy p { max-width: 420px; margin: 1.5rem 0 2rem; color: var(--color-muted); }
+
+.visual {
+  position: relative;
+  min-height: 300px;
+  margin: 0;
+}
+
+.visual::before {
+  content: "";
+  position: absolute;
+  inset: 8% 4% 0;
+  border-radius: 50% 50% 18px 18px;
+  background: var(--color-accent);
+}
+
+.frame {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-background);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.frame img { display: block; width: 100%; height: auto; }
+.frameMain { left: 30%; bottom: 0; z-index: 2; width: 40%; }
+.frameLeft { left: 4%; bottom: 6%; z-index: 1; width: 30%; transform: rotate(-5deg); }
+.frameRight { right: 4%; bottom: 10%; z-index: 1; width: 30%; transform: rotate(5deg); }
+
+.star { position: absolute; z-index: 3; color: var(--color-background); }
+.starA { top: 4%; left: 12%; width: 2.4rem; }
+.starB { top: 16%; right: 10%; width: 1.6rem; }
+
+.products { margin-top: 5rem; scroll-margin-top: 6rem; }
+
+.sectionTitle {
+  display: inline-block;
+  margin: 0 0 2.5rem;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(transparent 62%, var(--color-accent) 62% 92%, transparent 92%);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card { display: flex; flex-direction: column; }
+
+.imageWrap {
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 7 / 10;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .image { transform: scale(1.04); }
+
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+.name { margin: 0; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
+.price { margin: 0; font-weight: 800; white-space: nowrap; }
+.description { flex: 1; margin: 0.35rem 0 1rem; color: var(--color-muted); font-size: 0.95rem; }
+
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+@media (min-width: 900px) {
+  .hero { grid-template-columns: 1.05fr 0.95fr; }
+  .visual { min-height: 420px; }
+}
+
+@media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 3rem 2.5rem; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .image { transition: none; }
+  .card:hover .image { transform: none; }
+}

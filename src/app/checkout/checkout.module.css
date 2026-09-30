@@ -1,0 +1,32 @@
+.layout {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.heading { margin: 0 0 1rem; font-size: 1.25rem; }
+.list { margin: 0 0 1rem; padding: 0; list-style: none; }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.email { color: var(--color-muted); }
+
+.summary {
+  align-self: start;
+  padding: 1.5rem;
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+}
+
+.total { display: flex; justify-content: space-between; margin: 0 0 1rem; font-size: 1.1rem; }
+.note { margin: 0 0 1.5rem; color: var(--color-muted); font-size: 0.9rem; }
+
+@media (min-width: 900px) {
+  .layout { grid-template-columns: 1fr 360px; gap: 3rem; }
+}
