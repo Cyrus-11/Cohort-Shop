@@ -58,7 +58,7 @@ Because the seed never overwrites rows, a database seeded before the photo updat
 
 **Paystack** — use test keys. Hosted checkout sends the customer back to `/checkout/result`. For the webhook, Paystack cannot reach localhost, so start an HTTPS tunnel (for example `cloudflared tunnel --url http://localhost:3000`) and set the Paystack test webhook URL to `<tunnel-url>/api/paystack/webhook`.
 
-**Mailgun** — on a sandbox domain, add the recipient under Authorized Recipients and accept Mailgun's email first; it only delivers to authorized addresses. Use your Google test account's address. Sandbox mail often lands in spam. Custom domains need their DNS records set up.
+**Mailgun** — on a sandbox domain, add the recipient under Authorized Recipients and accept Mailgun's email first; it only delivers to authorized addresses. Use your Google test account's address. Sandbox mail often lands in spam, and Gmail can reject it outright (`550 5.7.40`, DMARC alignment) because the sandbox domain has no aligned SPF/DKIM of its own; Mailgun then still reports the message as accepted. For reliable delivery, add your own sending domain in Mailgun, publish the DNS records it shows (SPF, DKIM), wait for it to verify, and set `MAILGUN_DOMAIN` and `MAILGUN_FROM` to it. Check Mailgun's Sending → Logs to see delivered vs failed.
 
 ## Run
 
