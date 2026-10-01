@@ -35,7 +35,9 @@ export async function SiteHeader() {
               <button type="submit" className={styles.login}>Sign out</button>
             </form>
           ) : (
-            <Link className={styles.login} href="/login">Continue with Google</Link>
+            <Link className={styles.login} href="/login">
+              Sign in<span className={styles.long}> with Google</span>
+            </Link>
           )}
         </nav>
       </div>

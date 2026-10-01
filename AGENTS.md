@@ -32,3 +32,13 @@ Follow the short checklist in `context/project.md`. After each completed step, u
 If an integration cannot run because credentials or provider setup are missing, finish the code that can be completed, then record the exact setup still needed. Never fabricate successful payments or emails.
 
 Deliver a short README with installation, configuration, migrations/seed, run, and test commands. Verify the core flow, ownership rules, payment tampering, and duplicate notifications. Keep this context pack as two Markdown files unless the project later grows.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

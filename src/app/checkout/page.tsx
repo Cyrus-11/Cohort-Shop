@@ -44,7 +44,7 @@ export default async function CheckoutPage() {
       <section className="status-panel" aria-labelledby="signin-title">
         <h2 id="signin-title">Sign in to check out</h2>
         <p>Your cart and orders are tied to your Google account.</p>
-        <Link className="button" href="/login?next=/checkout">Continue with Google</Link>
+        <Link className="button" href="/login?next=/checkout">Sign in with Google</Link>
       </section>
     );
   } else if (!data) {

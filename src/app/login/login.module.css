@@ -1,0 +1,114 @@
+.card {
+  display: grid;
+  max-width: 960px;
+  margin: 1rem auto 0;
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+.brand {
+  position: relative;
+  overflow: hidden;
+  padding: 2.25rem 2rem 0;
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tagline {
+  margin: 1rem 0 1.5rem;
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.mark {
+  display: inline-block;
+  padding-inline: 0.15em;
+  background: var(--color-accent);
+  color: var(--color-text);
+  transform: rotate(-2deg);
+}
+
+.perks {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  color: #e6e6e6;
+  font-size: 0.95rem;
+  list-style: none;
+}
+
+.perks li { display: flex; align-items: center; gap: 0.6rem; }
+.perks svg { flex: none; color: var(--color-accent); }
+
+.photos {
+  position: relative;
+  height: 190px;
+  margin-top: 1.75rem;
+}
+
+.photoA,
+.photoB {
+  position: absolute;
+  bottom: -2.5rem;
+  width: 42%;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.photoA { left: 6%; transform: rotate(-6deg); }
+.photoB { right: 6%; bottom: -3.5rem; transform: rotate(5deg); }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2.25rem 2rem 2.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  background: linear-gradient(transparent 62%, var(--color-accent) 62% 92%, transparent 92%);
+  align-self: flex-start;
+}
+
+.copy { margin: 0; color: var(--color-muted); }
+
+.alert {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-error);
+  border-radius: var(--radius-small);
+  background: #fef3f2;
+  color: var(--color-error);
+  font-size: 0.9rem;
+}
+
+.fine { margin: 0.25rem 0 0; color: var(--color-muted); font-size: 0.8rem; }
+
+@media (min-width: 800px) {
+  .card { grid-template-columns: 1fr 1fr; min-height: 560px; }
+  .brand { padding: 3rem 2.5rem 17rem; }
+  .photos { position: absolute; right: 0; bottom: 0; left: 0; height: 230px; margin: 0; }
+  .form { padding: 3rem 2.5rem; }
+}

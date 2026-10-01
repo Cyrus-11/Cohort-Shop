@@ -69,7 +69,7 @@ export function PaymentResult({ reference }: { reference: string }) {
         <p role="alert">{state.message}</p>
         {state.signedOut ? (
           <Link className="button" href={`/login?next=${encodeURIComponent(`/checkout/result?reference=${reference}`)}`}>
-            Continue with Google
+            Sign in with Google
           </Link>
         ) : state.notFound ? (
           <Link className="button" href="/">Back to shop</Link>

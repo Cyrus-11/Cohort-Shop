@@ -96,6 +96,7 @@ button.login {
 
 @media (max-width: 720px) {
   .email { display: none; }
+  .long { display: none; }
   .nav { gap: 1rem; }
 }
 

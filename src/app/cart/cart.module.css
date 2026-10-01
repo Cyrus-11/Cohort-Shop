@@ -1,0 +1,81 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.heading {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  background: linear-gradient(transparent 62%, var(--color-accent) 62% 92%, transparent 92%);
+}
+
+.count {
+  margin: 0;
+  padding: 0.25rem 0.9rem;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-background);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.gate {
+  display: grid;
+  max-width: 880px;
+  margin: 2.5rem auto 0;
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  background: var(--color-background);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+.art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--color-surface);
+}
+
+.cartIcon { width: 150px; height: 150px; }
+
+.gateBody { display: flex; flex-direction: column; gap: 1rem; padding: 2rem 1.5rem 2.25rem; }
+
+.gateTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.gateCopy { margin: 0; color: var(--color-muted); }
+
+.benefits { display: grid; gap: 0.5rem; margin: 0; padding: 0; font-size: 0.95rem; list-style: none; }
+
+.benefits li { display: flex; align-items: center; gap: 0.6rem; }
+
+.benefits li::before {
+  content: "";
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--color-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-6.5' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
+
+.browse { align-self: flex-start; font-weight: 600; text-underline-offset: 4px; }
+
+@media (min-width: 760px) {
+  .gate { grid-template-columns: 0.8fr 1.2fr; }
+  .art { padding: 3rem 2rem; }
+  .cartIcon { width: 190px; height: 190px; }
+  .gateBody { justify-content: center; padding: 3rem 2.5rem; }
+}

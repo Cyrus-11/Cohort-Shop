@@ -43,82 +43,108 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
 
   if (cart.items.length === 0) {
     return (
-      <section className="status-panel" aria-labelledby="empty-title">
-        <h2 id="empty-title">Your cart is empty</h2>
-        <p>Add something you like from the shop.</p>
-        <Link className="button" href="/">Back to shop</Link>
+      <section className={styles.empty} aria-labelledby="empty-title">
+        <svg className={styles.emptyIcon} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <circle cx="32" cy="32" r="32" fill="var(--color-accent)" />
+          <path d="M18 24h30l-3 18H21z" fill="none" stroke="#000" strokeWidth="3" strokeLinejoin="round" />
+          <path d="M14 18h5l2 6" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="26" cy="49" r="3" fill="#000" />
+          <circle cx="42" cy="49" r="3" fill="#000" />
+        </svg>
+        <h2 id="empty-title" className={styles.emptyTitle}>Your cart is empty</h2>
+        <p className={styles.muted}>Looks like you haven&apos;t added anything yet.</p>
+        <Link className="button" href="/#products">Start shopping</Link>
       </section>
     );
   }
 
   return (
     <div className={styles.layout}>
-      <div>
-        {error ? <p role="alert" className="form-error">{error}</p> : null}
+      <section aria-label="Items in your cart">
+        {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
         <ul className={styles.list}>
           {cart.items.map((item) => {
             const busy = busyId === item.productId;
             return (
-              <li key={item.productId} className={styles.row}>
+              <li key={item.productId} className={`${styles.row} ${busy ? styles.busy : ""}`}>
                 <Image
                   src={item.imagePath}
-                  alt=""
+                  alt={item.name}
                   width={96}
-                  height={120}
+                  height={137}
                   className={styles.thumb}
-                  unoptimized
                 />
                 <div className={styles.details}>
-                  <h2 className={styles.name}>{item.name}</h2>
+                  <div className={styles.top}>
+                    <h2 className={styles.name}>{item.name}</h2>
+                    <p className={styles.lineTotal}>{formatKobo(item.lineTotalKobo)}</p>
+                  </div>
                   <p className={styles.muted}>{formatKobo(item.unitPriceKobo)} each</p>
                   <div className={styles.controls}>
-                    <label className={styles.quantity}>
-                      <span>Quantity</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={99}
-                        defaultValue={item.quantity}
-                        key={`${item.productId}-${item.quantity}`}
-                        disabled={busy}
-                        onBlur={(event) => {
-                          const value = Number(event.target.value);
-                          if (!Number.isInteger(value) || value < 1 || value > 99) {
-                            setError("Enter a quantity from 1 to 99.");
-                            event.target.value = String(item.quantity);
-                          } else if (value !== item.quantity) {
-                            void send("PUT", item.productId, value);
-                          }
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") event.currentTarget.blur();
-                        }}
-                      />
-                    </label>
+                    <div className={styles.stepper} role="group" aria-label={`Quantity of ${item.name}`}>
+                      <button
+                        type="button"
+                        aria-label={`Decrease quantity of ${item.name}`}
+                        disabled={busy || item.quantity <= 1}
+                        onClick={() => send("PUT", item.productId, item.quantity - 1)}
+                      >
+                        −
+                      </button>
+                      <output aria-live="polite">{item.quantity}</output>
+                      <button
+                        type="button"
+                        aria-label={`Increase quantity of ${item.name}`}
+                        disabled={busy || item.quantity >= 99}
+                        onClick={() => send("PUT", item.productId, item.quantity + 1)}
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      className="button button-secondary"
+                      className={styles.remove}
                       disabled={busy}
                       onClick={() => send("DELETE", item.productId)}
-                      aria-label={`Remove ${item.name}`}
+                      aria-label={`Remove ${item.name} from cart`}
                     >
+                      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+                        <path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                       Remove
                     </button>
                   </div>
                 </div>
-                <p className={styles.lineTotal}>{formatKobo(item.lineTotalKobo)}</p>
               </li>
             );
           })}
         </ul>
-      </div>
+        <Link className={styles.continue} href="/#products">← Continue shopping</Link>
+      </section>
+
       <aside className={styles.summary} aria-labelledby="summary-title">
-        <h2 id="summary-title">Order summary</h2>
+        <h2 id="summary-title" className={styles.summaryTitle}>Order summary</h2>
+        <dl className={styles.figures}>
+          <div>
+            <dt>Items</dt>
+            <dd>{cart.count}</dd>
+          </div>
+          <div>
+            <dt>Subtotal</dt>
+            <dd>{formatKobo(cart.totalKobo)}</dd>
+          </div>
+        </dl>
         <p className={styles.total}>
           <span>Total</span>
           <strong>{formatKobo(cart.totalKobo)}</strong>
         </p>
         <Link className="button" href="/checkout">Proceed to checkout</Link>
+        <p className={styles.secure}>
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+            <rect x="4" y="9" width="12" height="8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M7 9V6a3 3 0 016 0v3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          </svg>
+          Secure payment on Paystack. The final price is confirmed on our server.
+        </p>
       </aside>
     </div>
   );
