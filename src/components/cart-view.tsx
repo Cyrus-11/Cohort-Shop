@@ -81,24 +81,29 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
                   </div>
                   <p className={styles.muted}>{formatKobo(item.unitPriceKobo)} each</p>
                   <div className={styles.controls}>
-                    <div className={styles.stepper} role="group" aria-label={`Quantity of ${item.name}`}>
-                      <button
-                        type="button"
-                        aria-label={`Decrease quantity of ${item.name}`}
-                        disabled={busy || item.quantity <= 1}
-                        onClick={() => send("PUT", item.productId, item.quantity - 1)}
-                      >
-                        −
-                      </button>
-                      <output aria-live="polite">{item.quantity}</output>
-                      <button
-                        type="button"
-                        aria-label={`Increase quantity of ${item.name}`}
-                        disabled={busy || item.quantity >= 99}
-                        onClick={() => send("PUT", item.productId, item.quantity + 1)}
-                      >
-                        +
-                      </button>
+                    <div className={styles.quantityControl}>
+                      <div className={styles.stepper} role="group" aria-label={`Quantity of ${item.name}`} aria-busy={busy}>
+                        <button
+                          type="button"
+                          aria-label={`Decrease quantity of ${item.name}`}
+                          disabled={busy || item.quantity <= 1}
+                          onClick={() => send("PUT", item.productId, item.quantity - 1)}
+                        >
+                          −
+                        </button>
+                        <output aria-live="polite">{item.quantity}</output>
+                        <button
+                          type="button"
+                          aria-label={`Increase quantity of ${item.name}`}
+                          disabled={busy || item.quantity >= 99}
+                          onClick={() => send("PUT", item.productId, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className={styles.updateStatus} role="status" aria-atomic="true">
+                        {busy ? "Updating…" : ""}
+                      </span>
                     </div>
                     <button
                       type="button"

@@ -176,3 +176,6 @@
   .controls { gap: 0.5rem; }
   .summary { padding: 1.25rem; }
 }
+
+.quantityControl { display: flex; flex-direction: column; gap: 0.25rem; }
+.updateStatus { min-height: 1.4em; color: var(--color-text); font-size: 0.8rem; line-height: 1.4; }
