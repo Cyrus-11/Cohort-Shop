@@ -36,17 +36,21 @@ Apply once to an empty project, in order, in the Supabase SQL Editor or with `ps
 
 1. `supabase/migrations/202609300001_shop_schema.sql`
 2. `supabase/migrations/202609300002_order_operations.sql`
-3. `supabase/seed.sql` (safe to repeat; it does not overwrite existing products)
+3. `supabase/migrations/202610020001_delivery_details.sql`
+4. `supabase/seed.sql` (safe to repeat; it does not overwrite existing products)
 
 ```powershell
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202609300001_shop_schema.sql
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202609300002_order_operations.sql
+psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202610020001_delivery_details.sql
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/seed.sql
 ```
 
 Or run `node scripts/apply-migrations.mjs` (needs `psql` and `SUPABASE_DB_URL` in `.env`/`.env.local`). It refuses to run if the shop tables already exist. Do not apply the two create-table migrations twice to the same database.
 
 Because the seed never overwrites rows, a database seeded before the photo update keeps old product names and images. Update those rows by hand, or delete the six products and re-run the seed.
+
+For an existing shop database, apply only `202610020001_delivery_details.sql` before deploying the delivery/history update. It adds a nullable delivery snapshot for compatibility with old orders and a new server-only checkout function signature. Old orders remain readable without an address; the old checkout function remains for rollback compatibility. Do not rerun either base migration. This migration was applied and verified on the configured hosted project on 2026-10-03.
 
 ## Provider setup
 
@@ -100,11 +104,15 @@ npm run build
 3. The authorized address receives one confirmation email. Refresh the result page — no second email.
 4. Through the tunnel, resend the `charge.success` event from the Paystack dashboard — still one order and one email.
 5. Cancel a payment — the order never shows as paid and the cart is kept.
+6. Enter delivery details, complete a controlled test purchase, and open **Orders**. Check the saved address, item quantities, total and payment status; another Google account must not see the order. Existing orders show the missing-details message. Confirm the receipt contains the same delivery details.
 
 ## Behaviour to know
 
+- Checkout requires recipient name, phone (10–15 digits), street address, city and state/FCT for Nigeria. No delivery fee is added. Validated details are stored as an immutable order snapshot and included in payment confirmation and email receipts. Edits change the checkout retry key; network retries preserve the same key and details. Delivery form values stay on screen when a request fails and are not written to browser storage.
+- **Orders** in the signed-in header opens `/orders`: ten owned orders per page, newest first, with snapshot items, totals, payment status and delivery details. Pending attempts appear as payment not confirmed and link to server verification. Old orders show that no delivery details were recorded. No shipment tracking status is implied.
+
 - Signed-in pages refresh shared account data every 10 seconds while visible and online, and when returning to the tab or reconnecting. Cart contents, the header count and checkout review use the latest server data. This is periodic synchronization, not instant delivery; simultaneous quantity edits to the same product still use the last saved value.
-- Prices and totals are calculated on the server from database products, in integer kobo. The browser only sends a retry key.
+- Prices and totals are calculated on the server from database products, in integer kobo. The browser sends a retry key and delivery details.
 - A redirect, query string or browser message never marks an order paid; only Paystack's verify API plus an exact match of reference, amount, currency and test/live mode does.
 - If an email attempt times out, the order stays in `sending` (acceptance unknown) and is not resent automatically; check the Mailgun logs. If Mailgun rejects it, the order is `failed` and **Retry confirmation email** on the result page sends it again.
 - Product photos are from Unsplash (free for commercial use). See `context/project.md` for the photo IDs.

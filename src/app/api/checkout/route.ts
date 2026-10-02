@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser, isSameOrigin } from "@/lib/auth";
 import { startCheckout } from "@/lib/orders";
+import { deliverySchema } from "@/lib/delivery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ const noStore = { "Cache-Control": "no-store" };
 const json = (body: unknown, status = 200) =>
   NextResponse.json(body, { status, headers: noStore });
 
-const bodySchema = z.object({ checkoutKey: z.uuid() });
+const bodySchema = z.object({ checkoutKey: z.uuid(), delivery: deliverySchema }).strict();
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return json({ error: "Request not allowed." }, 403);
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return json({ error: "Invalid checkout request." }, 400);
 
   try {
-    const result = await startCheckout(user, parsed.data.checkoutKey);
+    const result = await startCheckout(user, parsed.data.checkoutKey, parsed.data.delivery);
     if (!result.ok) return json({ error: result.error, reference: result.reference }, result.status);
     return json({
       orderId: result.orderId,

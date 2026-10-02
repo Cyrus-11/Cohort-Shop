@@ -3,22 +3,24 @@ import { getAppEnv } from "@/lib/env/server";
 import { initializeTransaction, PaystackError, verifyTransaction } from "@/lib/paystack";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CurrentUser } from "@/lib/auth";
+import type { DeliveryDetails } from "@/lib/delivery";
 
 export type CheckoutResult =
   | { ok: true; orderId: string; reference: string; paymentStatus: "pending" | "paid"; authorizationUrl: string | null }
   | { ok: false; status: 400 | 409 | 502 | 500; error: string; reference?: string };
 
-const CART_PROBLEM = "Your cart is empty or has items that are no longer available.";
+const CART_PROBLEM = "Check your cart and delivery details. If you changed the address, start a new checkout attempt.";
 
 // Prices come from the database inside create_order_snapshot; the browser only
-// supplies the retry key. The user comes from verified session claims.
-export async function startCheckout(user: CurrentUser, checkoutKey: string): Promise<CheckoutResult> {
+// supplies delivery details and the retry key. Identity comes from verified claims.
+export async function startCheckout(user: CurrentUser, checkoutKey: string, delivery: DeliveryDetails): Promise<CheckoutResult> {
   const admin = createAdminClient();
 
   const { data: created, error: createError } = await admin.rpc("create_order_snapshot", {
     p_user_id: user.id,
     p_customer_email: user.email,
     p_checkout_key: checkoutKey,
+    p_delivery_details: delivery,
   });
   if (createError || !created) {
     return createError?.code === "22023"

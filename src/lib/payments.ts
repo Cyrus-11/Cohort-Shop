@@ -6,6 +6,8 @@ import { verifyTransaction } from "@/lib/paystack";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
+import { parseDelivery, type DeliveryDetails } from "@/lib/delivery";
+
 type Order = Database["public"]["Tables"]["orders"]["Row"];
 
 export type PaymentView = {
@@ -14,6 +16,7 @@ export type PaymentView = {
   paymentStatus: "paid" | "pending" | "unsuccessful";
   emailStatus: "pending" | "sending" | "accepted" | "failed";
   items: OrderItem[];
+  delivery: DeliveryDetails | null;
   totalKobo: number;
 };
 
@@ -31,6 +34,7 @@ function toView(order: Order, paymentStatus: PaymentView["paymentStatus"]): Paym
     paymentStatus,
     emailStatus: order.email_status as PaymentView["emailStatus"],
     items: parseOrderItems(order.items),
+    delivery: parseDelivery(order.delivery_details),
     totalKobo: order.total_kobo,
   };
 }
@@ -120,6 +124,7 @@ async function sendConfirmationOnce(order: Order): Promise<Order> {
       reference: claim.payment_reference,
       totalKobo: claim.total_kobo,
       items: parseOrderItems(claim.items),
+      delivery: parseDelivery(claim.delivery_details),
     });
     await admin.rpc("complete_order_email", {
       p_order_id: claim.id,

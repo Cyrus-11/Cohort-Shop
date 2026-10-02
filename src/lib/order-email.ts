@@ -1,7 +1,10 @@
 import { formatKobo } from "@/lib/money";
 import type { OrderItem } from "@/lib/order-items";
 
+import { deliveryLines, type DeliveryDetails } from "@/lib/delivery";
+
 export type OrderEmail = {
+  delivery?: DeliveryDetails | null;
   orderId: string;
   to: string;
   reference: string;
@@ -30,6 +33,7 @@ export function buildConfirmationText(order: OrderEmail): string {
     `Order ID: ${order.orderId}`,
     `Payment reference: ${order.reference}`,
     "",
+    ...(order.delivery ? ["Delivery details", ...deliveryLines(order.delivery), ""] : []),
     "Keep this email for your records.",
     "You received this receipt because your payment at Cohort Shop was confirmed.",
   ].join("\n");
@@ -81,6 +85,7 @@ export function buildConfirmationHtml(order: OrderEmail): string {
           <p style="margin:0;font-size:13px;word-break:break-all;">${escapeHtml(order.orderId)}</p>
           <p style="margin:16px 0 4px;font-size:12px;color:#666666;">PAYMENT REFERENCE</p>
           <p style="margin:0;font-size:13px;word-break:break-all;">${escapeHtml(order.reference)}</p>
+          ${order.delivery ? `<h2 style="font-size:18px;margin:24px 0 8px;">Delivery details</h2><p style="margin:0;overflow-wrap:anywhere;">${deliveryLines(order.delivery).map(escapeHtml).join("<br>")}</p>` : ""}
           <p style="margin:24px 0 0;color:#666666;font-size:13px;">Keep this email for your records.</p>
         </td></tr>
       </table>

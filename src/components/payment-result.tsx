@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { PaymentView } from "@/lib/payments";
+import { DeliverySummary } from "./delivery-summary";
 import { formatKobo } from "@/lib/money";
 import styles from "./payment-result.module.css";
 
@@ -127,7 +128,9 @@ export function PaymentResult({ reference }: { reference: string }) {
         <strong>{formatKobo(view.totalKobo)}</strong>
       </p>
 
+      <DeliverySummary details={view.delivery} />
       <div className={styles.actions}>
+        <Link className="button button-secondary" href="/orders">View order history</Link>
         {view.paymentStatus === "pending" ? (
           <button type="button" className="button" onClick={check}>Check payment again</button>
         ) : null}

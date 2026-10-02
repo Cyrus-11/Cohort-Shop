@@ -75,6 +75,7 @@ export type Database = {
       };
       orders: {
         Row: {
+          delivery_details: Json | null;
           id: string;
           user_id: string;
           customer_email: string;
@@ -93,6 +94,7 @@ export type Database = {
           created_at: string;
         };
         Insert: {
+          delivery_details?: Json | null;
           id?: string;
           user_id: string;
           customer_email: string;
@@ -111,6 +113,7 @@ export type Database = {
           created_at?: string;
         };
         Update: {
+          delivery_details?: Json | null;
           id?: string;
           user_id?: string;
           customer_email?: string;
@@ -134,7 +137,7 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       create_order_snapshot: {
-        Args: { p_user_id: string; p_customer_email: string; p_checkout_key: string };
+        Args: { p_user_id: string; p_customer_email: string; p_checkout_key: string; p_delivery_details: Json };
         Returns: Database["public"]["Tables"]["orders"]["Row"];
       };
       finalize_paid_order: {

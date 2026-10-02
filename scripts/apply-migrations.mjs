@@ -66,6 +66,7 @@ console.log("Connected to the configured Supabase project; no existing shop tabl
 for (const file of [
   "supabase/migrations/202609300001_shop_schema.sql",
   "supabase/migrations/202609300002_order_operations.sql",
+  "supabase/migrations/202610020001_delivery_details.sql",
   "supabase/seed.sql",
 ]) {
   run(["-q", "-f", path.join(projectRoot, file)]);
@@ -74,7 +75,7 @@ for (const file of [
 
 const summary = run([
   "-At", "-c",
-  "select (select count(*) from public.products), (select count(*) from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('products','cart_items','orders') and c.relrowsecurity), (select count(*) from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('create_order_snapshot','finalize_paid_order','claim_order_email','complete_order_email'))",
+  "select (select count(*) from public.products), (select count(*) from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('products','cart_items','orders') and c.relrowsecurity), (select count(distinct p.proname) from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('create_order_snapshot','finalize_paid_order','claim_order_email','complete_order_email'))",
 ]);
 const [products, rlsTables, operations] = summary.split("|").map(Number);
 if (products !== 6 || rlsTables !== 3 || operations !== 4) {

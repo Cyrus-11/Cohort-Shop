@@ -31,6 +31,7 @@ export async function SiteHeader() {
           <Link href="/cart" className={styles.cart} aria-label={`Cart, ${count} items`}>
             Cart <span className={styles.badge} aria-hidden="true">{count}</span>
           </Link>
+          {user ? <Link href="/orders">Orders</Link> : null}
           {user ? (
             <form action="/auth/signout" method="post" className={styles.account}>
               <span className={styles.email} title={user.email}>{user.email}</span>

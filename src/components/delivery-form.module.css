@@ -1,0 +1,6 @@
+.form { display: grid; gap: 1rem; }
+.fields { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fields legend { font-size: 1.2rem; font-weight: 700; }
+.fields p { color: var(--color-muted); font-size: .9rem; }
+.fields label { display: grid; gap: .35rem; margin-bottom: 1rem; font-size: .9rem; font-weight: 600; }
+.fields input { width: 100%; min-width: 0; min-height: 48px; border: 1px solid var(--color-border); border-radius: var(--radius-small); background: white; padding: .65rem; }

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { deliverySchema } from "@/lib/delivery";
+import styles from "./delivery-form.module.css";
+import { useState, type FormEvent } from "react";
 
 type Props = { cartSignature: string };
 
 const STORAGE_KEY = "checkout-attempt";
 
 // One key identifies one checkout attempt. It survives retries and reloads while the
-// cart is unchanged; a deliberately changed cart gets a new key.
+// cart and delivery details are unchanged; edits get a new key.
 function loadKey(signature: string): string {
   try {
     const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "null");
@@ -32,17 +34,25 @@ export function PayButton({ cartSignature }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [reference, setReference] = useState<string | null>(null);
 
-  async function pay() {
+  async function pay(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (pending) return;
-    const key = loadKey(cartSignature);
+    const form = new FormData(event.currentTarget);
+    const parsed = deliverySchema.safeParse(Object.fromEntries(form.entries()));
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? "Check your delivery details."); return; }
+    const delivery = parsed.data;
     setPending(true);
     setError(null);
     setReference(null);
     try {
+      // Keep address/phone values out of browser storage; only persist a digest.
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(cartSignature + JSON.stringify(delivery)));
+      const signature = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
+      const key = loadKey(signature);
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ checkoutKey: key }),
+        body: JSON.stringify({ checkoutKey: key, delivery }),
       });
       if (response.status === 401) {
         router.push("/login?next=/checkout");
@@ -67,11 +77,24 @@ export function PayButton({ cartSignature }: Props) {
   }
 
   return (
-    <div>
-      <button type="button" className="button" onClick={pay} disabled={pending}>
+    <form onSubmit={pay} className={styles.form}>
+      <fieldset disabled={pending} className={styles.fields}>
+        <legend>Delivery details</legend>
+        <p>Delivery within Nigeria. No delivery fee is added.</p>
+        {[
+          ["recipientName", "Recipient name", "name", 100],
+          ["phone", "Phone number", "tel", 25],
+          ["address", "Street address", "street-address", 250],
+          ["city", "City", "address-level2", 100],
+          ["state", "State / FCT", "address-level1", 100],
+        ].map(([name, label, autoComplete, max]) => <label key={name} htmlFor={String(name)}>
+          {label}<input id={String(name)} name={String(name)} autoComplete={String(autoComplete)} type={name === "phone" ? "tel" : "text"} maxLength={Number(max)} minLength={name === "phone" ? 10 : 2} aria-describedby={error ? "checkout-error" : undefined} required />
+        </label>)}
+      </fieldset>
+      <button type="submit" className="button" disabled={pending}>
         {pending ? "Connecting to Paystack…" : "Pay with Paystack"}
       </button>
-      {error ? <p role="alert" className="form-error">{error}</p> : null}
+      {error ? <p id="checkout-error" role="alert" className="form-error">{error}</p> : null}
       {reference ? (
         <p>
           <Link href={`/checkout/result?reference=${encodeURIComponent(reference)}`}>
@@ -79,6 +102,6 @@ export function PayButton({ cartSignature }: Props) {
           </Link>
         </p>
       ) : null}
-    </div>
+    </form>
   );
 }

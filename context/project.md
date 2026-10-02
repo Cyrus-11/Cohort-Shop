@@ -10,6 +10,8 @@ Build a small shop website with checkout, Supabase persistence, Google sign-in c
 
 ## Pages and User Flow
 
+**Delivery and history extension (2026-10-03):** checkout now collects recipient name, phone number, street address, city and state/FCT for Nigeria, with no delivery fee. Save validated details as an immutable order snapshot. `/orders` provides private, paginated order history with snapshot items, totals, payment status, delivery details and a link to payment verification. Existing orders without delivery details remain readable. No shipment tracking or fulfillment dashboard is included.
+
 | Page | Purpose |
 | --- | --- |
 | `/` | Product cards with image, name, description, price, and Add to cart |
@@ -132,6 +134,12 @@ Only the two `NEXT_PUBLIC_` values are browser configuration. Fail clearly when 
 
 ## Build Checklist and Acceptance
 
+- [x] Add delivery details and private order history; verify migration, retries, ownership, receipts and production build.
+
+**Delivery and order history (2026-10-03):** added the required Nigeria delivery form (name, phone, address, city, state/FCT), server/database validation, immutable JSONB delivery snapshots, and a compatible additive migration at `supabase/migrations/202610020001_delivery_details.sql`. Retries require matching delivery details; edits change the retry identity. Browser storage contains only a digest and retry key, never the entered address/phone. Failed requests preserve the on-screen form and cart. Delivery details appear in the private `/orders` history, payment confirmation, and escaped HTML/plain-text receipts. History uses verified identity, the cookie-backed RLS client, explicit owner filtering, deterministic newest-first pagination (10 orders), and sign-in/loading/empty/failure states. Older orders retain a null address with clear messaging. Updated README and the initial migration script.
+
+**Verification:** all 35 mocked app/component tests and all 13 isolated PostgreSQL tests passed; lint, TypeScript, diff whitespace check and final production build passed. The first database run required Windows sandbox escalation; an initial seed-test ordering issue was corrected. Cleared only generated `.next/cache` after a build cache write hit low disk space; the final build with network access for the existing Google font passed without that error. Local production GET `/orders` and `/checkout` returned 200 with sign-in gates, without exposing order details. No authenticated browser/mobile visual check or real payment/email was run. **Rollout still needed:** apply only the new migration once to the existing hosted Supabase project before deploying the app, then check real Google sign-in, delivery checkout, old/new order history and a controlled test receipt. Hosted migration, push and deployment were not performed for this feature.
+
 - [x] Scaffold Next.js/TypeScript; add compatible dependencies and environment examples.
 - [x] Apply schema, constraints, RLS/functions, and sample-product seed.
 - [x] Configure Google/Supabase auth; build listing and persisted cart.
@@ -197,3 +205,5 @@ Consulted on 2026-09-30; check installed versions before coding:
 - [x] Push cross-device refresh changes to GitHub and deploy to production.
 
 **Cross-device refresh deployment (2026-10-02):** pushed application commit `6fb14dc` to GitHub main and deployed an isolated archive of committed files to https://cohort-shop.vercel.app (Vercel `dpl_4PXPdxeDq2XBM3U1GE4ayRm5jZpF`, READY). Vercel build and TypeScript passed. Live read-only checks: home/login/cart/checkout returned 200, six product buttons loaded, and anonymous cart API returned 401. No live cart writes, payments or emails were sent. Real same-account laptop/phone synchronization remains to be checked: sign in on both devices, edit one cart, and verify the other updates while visible within the next polling interval or when returning to the tab.
+
+**Hosted delivery migration (2026-10-03):** applied `202610020001_delivery_details.sql` to the Supabase database after checking it matches the configured app project. Verified JSONB delivery column, checkout function, validation constraint, immutable snapshot trigger, RLS and server-only function execution (authenticated/anonymous roles denied). Existing order count remained 18 before/after. This supersedes the earlier migration-pending note; application push/deployment and real signed-in flow checks remain outstanding. No payment or email was sent.

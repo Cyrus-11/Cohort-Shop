@@ -296,3 +296,26 @@ test("definite email failure permits a new attempt and a stale completion cannot
   const accepted = await complete(created.id, second.email_attempt_id, "accepted", "current-id");
   assert.equal(accepted.mailgun_message_id, "current-id");
 });
+
+test("delivery snapshots are validated, immutable, private and consistent across checkout retries", async () => {
+  const owner = await user();
+  const stranger = await user();
+  const [product] = await products();
+  await add(owner, product, 2);
+  const key = randomUUID();
+  const delivery = { recipientName: "Demo Customer", phone: "+2348012345678", address: "12 Demo Street", city: "Ikeja", state: "Lagos" };
+  const create = (details, checkoutKey = key, run = privileged) => json(`SELECT row_to_json(created) FROM public.create_order_snapshot('${owner}','demo@example.test','${checkoutKey}',${quoted(JSON.stringify(details))}::jsonb) created`, run);
+  for (const invalid of [null, {}, { ...delivery, phone: "123" }, { ...delivery, address: " " }, { ...delivery, city: "x".repeat(101) }, { ...delivery, extra: "field" }]) {
+    await rejected(create(invalid));
+  }
+  const created = await create(delivery);
+  assert.deepEqual(created.delivery_details, delivery);
+  assert.equal((await create(delivery)).id, created.id);
+  await rejected(create({ ...delivery, city: "Abuja" }));
+  await rejected(privileged(`UPDATE public.orders SET delivery_details = NULL WHERE id = '${created.id}'`));
+  await rejected(customer(owner, `UPDATE public.orders SET delivery_details = '{}' WHERE id = '${created.id}'`));
+  assert.equal(await customer(stranger, `SELECT count(*) FROM public.orders WHERE id = '${created.id}'`), "0");
+  await rejected(create(delivery, randomUUID(), sql => customer(owner, sql)));
+  const paid = await finalize(created);
+  assert.deepEqual(paid.delivery_details, delivery);
+});
