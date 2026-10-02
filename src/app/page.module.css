@@ -129,3 +129,10 @@
   .image { transition: none; }
   .card:hover .image { transform: none; }
 }
+@media (max-width: 639px) {
+  .products { margin-top: 3rem; }
+  .sectionTitle { margin-bottom: 1.5rem; }
+  .grid { gap: 2rem; }
+  .head { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+  .visual { min-height: 240px; }
+}

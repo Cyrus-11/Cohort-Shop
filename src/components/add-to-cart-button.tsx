@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import styles from "./add-to-cart-button.module.css";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -43,21 +45,24 @@ export function AddToCartButton({ productId, productName, initialQuantity }: Pro
   }
 
   return (
-    <div>
+    <div className={styles.wrap}>
       <button
         type="button"
-        className="button"
+        className={`button ${message && !message.error ? styles.added : ""}`}
         onClick={add}
         disabled={pending || quantity >= 99}
-        aria-label={`Add ${productName} to cart`}
+        aria-label={pending ? `Adding ${productName} to cart` : message && !message.error ? `Added to cart. Add another ${productName}` : `Add ${productName} to cart`}
+        aria-busy={pending}
       >
-        {pending ? "Adding…" : "Add to cart"}
+        {pending ? "Adding…" : message && !message.error ? "✓ Added to cart" : "Add to cart"}
       </button>
       <p
         role={message?.error ? "alert" : "status"}
-        className={message?.error ? "form-error" : "form-note"}
+        aria-atomic="true"
+        className={`${styles.feedback} ${message?.error ? "form-error" : "form-note"}`}
       >
         {message?.text}
+        {message && !message.error ? <Link className={styles.cartLink} href="/cart">View cart →</Link> : null}
       </p>
     </div>
   );

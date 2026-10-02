@@ -1,0 +1,14 @@
+.wrap { margin-top: auto; }
+.added { background: var(--color-accent); color: var(--color-text); }
+.feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; }
+.cartLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-text);
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+@media (max-width: 639px) {
+  .wrap :global(.button) { width: 100%; }
+}
