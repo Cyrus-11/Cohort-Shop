@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/server";
 import styles from "./site-header.module.css";
+import { AccountSync } from "./account-sync";
 
 async function loadHeaderState() {
   try {
@@ -19,6 +20,7 @@ export async function SiteHeader() {
   const { user, count } = await loadHeaderState();
   return (
     <header className={styles.header}>
+      {user ? <AccountSync /> : null}
       <div className={`shell ${styles.inner}`}>
         <Link className={styles.brand} href="/">
           <span className={styles.mark} aria-hidden="true" />

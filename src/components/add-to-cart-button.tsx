@@ -3,17 +3,19 @@
 import Link from "next/link";
 import styles from "./add-to-cart-button.module.css";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 type Props = { productId: string; productName: string; initialQuantity: number };
 
 export function AddToCartButton({ productId, productName, initialQuantity }: Props) {
   const router = useRouter();
-  const [quantity, setQuantity] = useState(initialQuantity);
+  const quantity = initialQuantity;
+  const [refreshing, startTransition] = useTransition();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
 
   async function add() {
+    if (pending || refreshing) return;
     setPending(true);
     setMessage(null);
     try {
@@ -31,12 +33,8 @@ export function AddToCartButton({ productId, productName, initialQuantity }: Pro
         setMessage({ text: body.error ?? "Could not add this item.", error: true });
         return;
       }
-      const line = (body.items as { productId: string; quantity: number }[]).find(
-        (item) => item.productId === productId,
-      );
-      setQuantity(line?.quantity ?? quantity + 1);
       setMessage({ text: "Added to your cart.", error: false });
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch {
       setMessage({ text: "Network problem. Your cart was not changed.", error: true });
     } finally {
@@ -50,7 +48,7 @@ export function AddToCartButton({ productId, productName, initialQuantity }: Pro
         type="button"
         className={`button ${message && !message.error ? styles.added : ""}`}
         onClick={add}
-        disabled={pending || quantity >= 99}
+        disabled={pending || refreshing || quantity >= 99}
         aria-label={pending ? `Adding ${productName} to cart` : message && !message.error ? `Added to cart. Add another ${productName}` : `Add ${productName} to cart`}
         aria-busy={pending}
       >

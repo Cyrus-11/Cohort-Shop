@@ -3,18 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type { CartView as Cart } from "@/lib/cart";
 import { formatKobo } from "@/lib/money";
 import styles from "./cart-view.module.css";
 
 export function CartView({ initialCart }: { initialCart: Cart }) {
   const router = useRouter();
-  const [cart, setCart] = useState(initialCart);
+  const cart = initialCart;
+  const [refreshing, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function send(method: "PUT" | "DELETE", productId: string, quantity?: number) {
+    if (busyId || refreshing) return;
     setBusyId(productId);
     setError(null);
     try {
@@ -32,8 +34,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
         setError(body.error ?? "The cart could not be updated.");
         return;
       }
-      setCart(body);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch {
       setError("Network problem. Your cart was not changed.");
     } finally {
@@ -64,7 +65,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
         {error ? <p role="alert" className={styles.alert}>{error}</p> : null}
         <ul className={styles.list}>
           {cart.items.map((item) => {
-            const busy = busyId === item.productId;
+            const busy = busyId === item.productId || refreshing;
             return (
               <li key={item.productId} className={`${styles.row} ${busy ? styles.busy : ""}`}>
                 <Image
@@ -86,7 +87,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
                         <button
                           type="button"
                           aria-label={`Decrease quantity of ${item.name}`}
-                          disabled={busy || item.quantity <= 1}
+                          disabled={!!busyId || refreshing || item.quantity <= 1}
                           onClick={() => send("PUT", item.productId, item.quantity - 1)}
                         >
                           −
@@ -95,7 +96,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
                         <button
                           type="button"
                           aria-label={`Increase quantity of ${item.name}`}
-                          disabled={busy || item.quantity >= 99}
+                          disabled={!!busyId || refreshing || item.quantity >= 99}
                           onClick={() => send("PUT", item.productId, item.quantity + 1)}
                         >
                           +
@@ -108,7 +109,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
                     <button
                       type="button"
                       className={styles.remove}
-                      disabled={busy}
+                      disabled={!!busyId || refreshing}
                       onClick={() => send("DELETE", item.productId)}
                       aria-label={`Remove ${item.name} from cart`}
                     >

@@ -103,6 +103,7 @@ npm run build
 
 ## Behaviour to know
 
+- Signed-in pages refresh shared account data every 10 seconds while visible and online, and when returning to the tab or reconnecting. Cart contents, the header count and checkout review use the latest server data. This is periodic synchronization, not instant delivery; simultaneous quantity edits to the same product still use the last saved value.
 - Prices and totals are calculated on the server from database products, in integer kobo. The browser only sends a retry key.
 - A redirect, query string or browser message never marks an order paid; only Paystack's verify API plus an exact match of reference, amount, currency and test/live mode does.
 - If an email attempt times out, the order stays in `sending` (acceptance unknown) and is not resent automatically; check the Mailgun logs. If Mailgun rejects it, the order is `failed` and **Retry confirmation email** on the result page sends it again.
