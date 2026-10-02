@@ -2,8 +2,7 @@ import "server-only";
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
 import { getMailgunEnv } from "@/lib/env/server";
-import { formatKobo } from "@/lib/money";
-import type { OrderItem } from "@/lib/order-items";
+import { buildOrderConfirmationEmail, type OrderEmail } from "@/lib/order-email";
 
 const TIMEOUT_MS = 10000;
 
@@ -16,31 +15,6 @@ export class MailgunError extends Error {
     super(`Mailgun request failed (${kind}).`);
     this.kind = kind;
   }
-}
-
-type OrderEmail = {
-  orderId: string;
-  to: string;
-  reference: string;
-  totalKobo: number;
-  items: OrderItem[];
-};
-
-export function buildConfirmationText(order: OrderEmail): string {
-  const lines = order.items.map(
-    (item) => `- ${item.name} x ${item.quantity}: ${formatKobo(item.unitPriceKobo * item.quantity)}`,
-  );
-  return [
-    "Thank you for your order at Cohort Shop. Your payment was confirmed.",
-    "",
-    `Order ID: ${order.orderId}`,
-    `Payment reference: ${order.reference}`,
-    "",
-    "Items:",
-    ...lines,
-    "",
-    `Total: ${formatKobo(order.totalKobo)}`,
-  ].join("\n");
 }
 
 // Resolves with Mailgun's message ID once Mailgun accepts the message for delivery.
@@ -57,8 +31,10 @@ export async function sendOrderConfirmation(order: OrderEmail): Promise<{ messag
     const result = await client.messages.create(env.MAILGUN_DOMAIN, {
       from: env.MAILGUN_FROM,
       to: [order.to],
-      subject: `Your Cohort Shop order ${order.orderId.slice(0, 8)}`,
-      text: buildConfirmationText(order),
+      ...buildOrderConfirmationEmail(order),
+      "o:tracking": "no",
+      "o:tracking-clicks": "no",
+      "o:tracking-opens": "no",
     });
     if (!result.id || !result.id.trim()) throw new MailgunError("unknown");
     return { messageId: result.id.trim() };

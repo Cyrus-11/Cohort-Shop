@@ -58,7 +58,19 @@ Because the seed never overwrites rows, a database seeded before the photo updat
 
 **Paystack** — use test keys. Hosted checkout sends the customer back to `/checkout/result`. For the webhook, Paystack cannot reach localhost, so start an HTTPS tunnel (for example `cloudflared tunnel --url http://localhost:3000`) and set the Paystack test webhook URL to `<tunnel-url>/api/paystack/webhook`.
 
-**Mailgun** — on a sandbox domain, add the recipient under Authorized Recipients and accept Mailgun's email first; it only delivers to authorized addresses. Use your Google test account's address. Sandbox mail often lands in spam, and Gmail can reject it outright (`550 5.7.40`, DMARC alignment) because the sandbox domain has no aligned SPF/DKIM of its own; Mailgun then still reports the message as accepted. For reliable delivery, add your own sending domain in Mailgun, publish the DNS records it shows (SPF, DKIM), wait for it to verify, and set `MAILGUN_DOMAIN` and `MAILGUN_FROM` to it. Check Mailgun's Sending → Logs to see delivered vs failed.
+**Mailgun** — the app sends a branded HTML payment receipt and a matching plain-text version. Click/open tracking is disabled for these transactional emails. HTML styling does not fix sender authentication or guarantee inbox placement.
+
+For sandbox testing, authorize the recipient in Mailgun and have them accept the invitation. The sandbox is restricted to authorized recipients; production delivery still needs your own sending domain.
+
+For better delivery:
+
+1. Add a domain you own to Mailgun (a sending subdomain such as `mail.your-domain` keeps sending configuration separate).
+2. Publish the exact SPF/DKIM records shown in Mailgun and wait for verification. Keep only one SPF TXT record per hostname; merge authorized senders if a record already exists. Preserve existing mailbox MX records unless you intentionally configure Mailgun to receive mail.
+3. Add DMARC for the sender domain, initially with a monitoring policy such as `p=none`, and check that the visible From domain aligns with the SPF or DKIM domain. Follow your DNS provider's hostname conventions.
+4. Set `MAILGUN_DOMAIN` to the verified sending domain and `MAILGUN_FROM` to `Cohort Shop <orders@your-verified-domain>`. Do not use a Gmail/Yahoo address as the From address. Update these settings locally and in Vercel, then redeploy.
+5. Make one controlled Paystack test purchase and inspect Mailgun delivery logs and the recipient's message headers (`SPF=pass`, `DKIM=pass`, `DMARC=pass`). Check inbox placement separately: Mailgun acceptance is not delivery, and authentication does not guarantee inbox placement.
+
+References: [Mailgun domain verification](https://documentation.mailgun.com/docs/mailgun/user-manual/domains/domains-verify), [Gmail sender guidelines](https://support.google.com/mail/answer/81126?hl=en).
 
 ## Run
 

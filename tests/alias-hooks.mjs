@@ -2,6 +2,7 @@
 // database client and Mailgun sender for in-memory fakes. No network, payment, or email.
 const root = new URL("../", import.meta.url);
 const fakes = {
+  "mailgun.js": new URL("./fakes/mailgun-sdk.mjs", import.meta.url).href,
   // Next.js supplies this marker at build time; it has no runtime behaviour.
   "server-only": "data:text/javascript,export {}",
   "@/lib/supabase/admin": new URL("./fakes/admin.mjs", import.meta.url).href,
