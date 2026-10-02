@@ -187,3 +187,5 @@ Consulted on 2026-09-30; check installed versions before coding:
 - [x] Add clear cart update feedback.
 
 **Cart feedback (2026-10-02):** added an accessible Updating status beneath the quantity controls, with reserved space to prevent control movement and an aria-busy quantity group. Existing request completion clears the status on success, provider rejection and network failure. Lint, TypeScript and the production build passed. A temporary mocked component interaction check verified pending/disabled controls, successful quantity changes and preserved quantity after failures; Chromium loading fixtures at 360/1280px had no overflow or control movement. These checks used fixtures, not a real authenticated cart, and made no live cart writes/payments/emails.
+
+**Cart feedback deployment (2026-10-02):** pushed application commit `21f349d` and deployed to https://cohort-shop.vercel.app (`dpl_BwXEe94tsPj7c26eXxdDtunX6wSL`, READY). Vercel build/TypeScript passed; live home/cart returned 200 and anonymous cart API returned 401. Authenticated updating feedback was verified with mocks/fixtures only.
