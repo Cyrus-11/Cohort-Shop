@@ -20,6 +20,7 @@ mobile/.test-artifacts/
 next-env.d.ts
 
 # Local configuration and secrets
+.claude/settings.local.json
 .env*
 !.env.example
 
