@@ -6,6 +6,8 @@ Build a small shop website with checkout, Supabase persistence, Google sign-in c
 
 **Chosen stack:** one Next.js App Router application, TypeScript, CSS Modules/global CSS, `@supabase/supabase-js`, `@supabase/ssr`, native fetch for Paystack, and the official Mailgun Node SDK with its required FormData dependency.
 
+**Mobile extension (2026-10-03):** user requested a native Expo Android app using the same account and API, with instant website-to-phone cart synchronization and a physical-phone demonstration. `mobile/` is an npm workspace/client; Next.js remains the only backend. One root lockfile covers both. Use the same Supabase Google provider with browser PKCE, encrypted native session storage, server-verified bearer requests and unchanged cookie CSRF protection. Publish only owner-readable `cart_sync` revisions via Realtime; clients reload their own cart. Instant means a live foreground update after a committed write, subject to network latency, not a periodic poll or guaranteed background delivery.
+
 **Simple defaults:** working name “Cohort Shop”; six seeded sample products; NGN currency; Paystack test mode; Google sign-in before adding to the cart or checking out. Browsing is public. No shipping, tax calculation, inventory reservations, discounts, refunds, admin dashboard, or other login methods. These defaults can be changed if the cohort specifies otherwise.
 
 ## Pages and User Flow
@@ -34,6 +36,7 @@ shop/
   .env.example
   package.json
   package-lock.json
+  mobile/                    # Native Expo Android client; same API/backend/account
   supabase/
     migrations/
     seed.sql
@@ -63,7 +66,7 @@ shop/
   tests/
 ```
 
-This pack contains documentation only. Create application files when implementation is requested. Keep a single package; no monorepo required.
+The website and backend remain one Next.js application. The requested native mobile client is the single additional npm workspace; keep one lockfile and avoid additional services.
 
 ## Database and Access
 
@@ -133,6 +136,10 @@ MAILGUN_API_URL=https://api.mailgun.net
 Only the two `NEXT_PUBLIC_` values are browser configuration. Fail clearly when required settings are missing. Account setup and working credentials are needed to prove integrations; no credentials or provider configuration are included in this pack.
 
 ## Build Checklist and Acceptance
+
+- [x] Build native Expo screens and server-verified shared API authentication.
+- [x] Add and apply owner-only Realtime cart-sync migration; verify isolated RLS/trigger checks and a controlled live API/WebSocket check.
+- [ ] Build/install an Android APK with the user's Expo account, allow the mobile OAuth callback, make the new API reachable, and verify Google login plus instant cart sync on the physical phone.
 
 - [x] Add delivery details and private order history; verify migration, retries, ownership, receipts and production build.
 
@@ -207,3 +214,9 @@ Consulted on 2026-09-30; check installed versions before coding:
 **Cross-device refresh deployment (2026-10-02):** pushed application commit `6fb14dc` to GitHub main and deployed an isolated archive of committed files to https://cohort-shop.vercel.app (Vercel `dpl_4PXPdxeDq2XBM3U1GE4ayRm5jZpF`, READY). Vercel build and TypeScript passed. Live read-only checks: home/login/cart/checkout returned 200, six product buttons loaded, and anonymous cart API returned 401. No live cart writes, payments or emails were sent. Real same-account laptop/phone synchronization remains to be checked: sign in on both devices, edit one cart, and verify the other updates while visible within the next polling interval or when returning to the tab.
 
 **Hosted delivery migration (2026-10-03):** applied `202610020001_delivery_details.sql` to the Supabase database after checking it matches the configured app project. Verified JSONB delivery column, checkout function, validation constraint, immutable snapshot trigger, RLS and server-only function execution (authenticated/anonymous roles denied). Existing order count remained 18 before/after. This supersedes the earlier migration-pending note; application push/deployment and real signed-in flow checks remain outstanding. No payment or email was sent.
+
+**Native verification (2026-10-03):** all 53 tests passed (39 mocked application and 14 isolated PostgreSQL), lint, website/native TypeScript, Next production build, Expo dependency compatibility and Android Hermes export passed. Controlled temporary Supabase accounts verified bearer cart writes, three owner Realtime signals for add/edit/remove (first observed latency 1.753 seconds), zero signals for the other account, forged-token rejection and owned order reads; test accounts were removed without payments/emails. Hosted cart-sync migration verified RLS, trigger and publication. Temporary Vercel Preview deployment dpl_33rpH327u8RF3iKWNcBcVjPRvTXy is READY; products return 200 and anonymous cart returns 401. Preview uses public Supabase configuration only, so payment/email integrations are unavailable. User approved temporarily disabling project-wide SSO protection (original deploymentType all_except_custom_domains); restore it after phone testing. Live custom domain/deployment unchanged. Expo project cyrus-11/cohort-shop-mobile is linked and an internal APK build is starting; physical Google login and cart synchronization remain unverified.
+
+**Android APK (2026-10-03):** EAS internal preview build affc7cd8-46e4-4175-8f7e-150295d59729 FINISHED successfully (SDK 57, com.cyrus11.cohortshop, version 1.0.0 / code 1). Install: https://expo.dev/artifacts/eas/_40HF_cT9zXXJsB2FYqNLiL_3Clz4gG8Wyra7kKnxh0.apk. Archive source and exported native bundle were checked against configured server credential values; no local environment/settings files or server credentials were found (EAS-generated shallow Git metadata excluded from source inspection). User has been sent the APK and asked to confirm physical Google login and foreground website-to-phone cart synchronization. Those results remain pending; restore original Vercel SSO protection after testing.
+
+**Emulator setup (2026-10-03):** user requested Android emulator testing. PC is HP EliteBook Folio 1040 G3, Intel i7-6600U, 7.9 GB RAM and 9.6 GB free on C:. Windows reports VirtualizationFirmwareEnabled=False. Existing Android Studio 2025.1.1 fails with EssentialPluginMissingException (bundled Java/JUnit/Android and other plugins missing). SDK emulator/platform-tools contain only installer metadata; no emulator.exe/adb.exe or configured AVD found. Preview APK downloaded successfully to ignored mobile/.test-artifacts/cohort-shop-preview.apk (67.5 MB, ZIP header validated). Next: user enables Intel VT-x in BIOS, then repair Studio or install official standalone SDK tools, create x86_64 AVD, install APK and test login/cart. No emulator test is claimed; physical-phone check remains separate and pending. Vercel SSO protection remains temporarily off awaiting testing and must be restored afterward.

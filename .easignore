@@ -1,0 +1,31 @@
+# The workspace archive includes the web source for shared pure modules, but
+# excludes every local credential/settings file and generated artifact.
+.git/
+.vercel/
+.claude/
+.agents/
+.codex/
+.aws/
+node_modules/
+mobile/node_modules/
+.next/
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+mobile/.test-artifacts/
+.env
+.env.*
+mobile/.env
+mobile/.env.*
+!.env.example
+!mobile/.env.example
+*.log
+*.tsbuildinfo
+.npm-cache/
+coverage/
+.verify-*
+.mobile-preview-stage/
+.eas-archive-inspect/
+.deploy-mobile-preview.mjs
+.set-mobile-build-env.mjs

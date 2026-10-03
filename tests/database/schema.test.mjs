@@ -319,3 +319,26 @@ test("delivery snapshots are validated, immutable, private and consistent across
   const paid = await finalize(created);
   assert.deepEqual(paid.delivery_details, delivery);
 });
+
+test("cart sync revisions signal inserts, edits, removals and payment cleanup privately", async () => {
+  const owner = await user(), stranger = await user();
+  const [product] = await products();
+  const revision = () => customer(owner, `SELECT revision FROM public.cart_sync WHERE user_id = '${owner}'`);
+  await add(owner, product, 1);
+  const inserted = await revision();
+  assert.match(inserted, /^[a-f0-9-]{36}$/);
+  await add(owner, product, 2);
+  const edited = await revision();
+  assert.notEqual(edited, inserted);
+  assert.equal(await customer(stranger, `SELECT count(*) FROM public.cart_sync WHERE user_id = '${owner}'`), "0");
+  await rejected(customer(owner, `UPDATE public.cart_sync SET revision = gen_random_uuid() WHERE user_id = '${owner}'`));
+  await rejected(db.as("anon", null, "SELECT * FROM public.cart_sync"));
+  await customer(owner, `DELETE FROM public.cart_items WHERE user_id = '${owner}'`);
+  const removed = await revision();
+  assert.notEqual(removed, edited);
+  await add(owner, product, 1);
+  const created = await order(owner);
+  const beforePayment = await revision();
+  await finalize(created);
+  assert.notEqual(await revision(), beforePayment);
+});

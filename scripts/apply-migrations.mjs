@@ -67,6 +67,7 @@ for (const file of [
   "supabase/migrations/202609300001_shop_schema.sql",
   "supabase/migrations/202609300002_order_operations.sql",
   "supabase/migrations/202610020001_delivery_details.sql",
+  "supabase/migrations/202610030001_cart_sync.sql",
   "supabase/seed.sql",
 ]) {
   run(["-q", "-f", path.join(projectRoot, file)]);

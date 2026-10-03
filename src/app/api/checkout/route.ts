@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, isSameOrigin } from "@/lib/auth";
+import { getApiSession, isAllowedApiWrite } from "@/lib/api-session";
 import { startCheckout } from "@/lib/orders";
 import { deliverySchema } from "@/lib/delivery";
 
@@ -13,9 +13,21 @@ const json = (body: unknown, status = 200) =>
 
 const bodySchema = z.object({ checkoutKey: z.uuid(), delivery: deliverySchema }).strict();
 
+export async function GET(request: Request) {
+  const session = await getApiSession(request);
+  if (!session) return json({ error: "Sign in to check out." }, 401);
+  const { data, error } = await session.client.from("orders")
+    .select("payment_reference, total_kobo")
+    .eq("user_id", session.user.id).eq("payment_status", "pending")
+    .not("authorization_url", "is", null)
+    .order("created_at", { ascending: false }).limit(1);
+  if (error) return json({ error: "Pending payments could not be loaded." }, 503);
+  return json({ pending: data?.[0] ?? null });
+}
+
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) return json({ error: "Request not allowed." }, 403);
-  const user = await getCurrentUser();
+  if (!isAllowedApiWrite(request)) return json({ error: "Request not allowed." }, 403);
+  const user = (await getApiSession(request))?.user;
   if (!user) return json({ error: "Sign in to check out." }, 401);
 
   let payload: unknown;

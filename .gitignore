@@ -1,5 +1,13 @@
 # Dependencies
 /node_modules
+/.mobile-preview-stage/
+/.eas-archive-inspect/
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+mobile/.test-artifacts/
 /.npm-cache
 
 # Next.js output

@@ -11,6 +11,12 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cart_sync: {
+        Row: { user_id: string; revision: string };
+        Insert: { user_id: string; revision?: string };
+        Update: { revision?: string };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;

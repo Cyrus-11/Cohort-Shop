@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Cohort Shop",
+    "slug": "cohort-shop-mobile",
+    "version": "1.0.0",
+    "scheme": "cohortshop",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.cyrus11.cohortshop",
+      "versionCode": 1
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "autolinkingModuleResolution": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1d299f44-d308-4aab-b30d-8010dbbba17d"
+      }
+    },
+    "owner": "cyrus-11"
+  }
+}

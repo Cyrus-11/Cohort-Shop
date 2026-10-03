@@ -20,7 +20,7 @@ export async function SiteHeader() {
   const { user, count } = await loadHeaderState();
   return (
     <header className={styles.header}>
-      {user ? <AccountSync /> : null}
+      {user ? <AccountSync userId={user.id} /> : null}
       <div className={`shell ${styles.inner}`}>
         <Link className={styles.brand} href="/">
           <span className={styles.mark} aria-hidden="true" />

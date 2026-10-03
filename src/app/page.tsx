@@ -4,17 +4,14 @@ import { StatusPanel } from "@/components/status-panel";
 import { getCurrentUser } from "@/lib/auth";
 import { formatKobo } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { getProducts } from "@/lib/products";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 async function loadShop() {
   const supabase = await createClient();
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("id, name, description, image_path, price_kobo")
-    .order("price_kobo", { ascending: true });
-  if (error) throw error;
+  const products = await getProducts();
 
   const quantities = new Map<string, number>();
   const user = await getCurrentUser();

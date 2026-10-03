@@ -1,24 +1,17 @@
 import "server-only";
 import { getPaystackEnv } from "@/lib/env/server";
 import { MailgunError, sendOrderConfirmation } from "@/lib/mailgun";
-import { parseOrderItems, type OrderItem } from "@/lib/order-items";
+import { parseOrderItems } from "@/lib/order-items";
 import { verifyTransaction } from "@/lib/paystack";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
-import { parseDelivery, type DeliveryDetails } from "@/lib/delivery";
+import { parseDelivery } from "@/lib/delivery";
 
 type Order = Database["public"]["Tables"]["orders"]["Row"];
 
-export type PaymentView = {
-  orderId: string;
-  reference: string;
-  paymentStatus: "paid" | "pending" | "unsuccessful";
-  emailStatus: "pending" | "sending" | "accepted" | "failed";
-  items: OrderItem[];
-  delivery: DeliveryDetails | null;
-  totalKobo: number;
-};
+import type { PaymentView } from "@/lib/shop-types";
+export type { PaymentView } from "@/lib/shop-types";
 
 export type ConfirmOutcome =
   | { kind: "order"; view: PaymentView }

@@ -37,12 +37,14 @@ Apply once to an empty project, in order, in the Supabase SQL Editor or with `ps
 1. `supabase/migrations/202609300001_shop_schema.sql`
 2. `supabase/migrations/202609300002_order_operations.sql`
 3. `supabase/migrations/202610020001_delivery_details.sql`
-4. `supabase/seed.sql` (safe to repeat; it does not overwrite existing products)
+4. `supabase/migrations/202610030001_cart_sync.sql`
+5. `supabase/seed.sql` (safe to repeat; it does not overwrite existing products)
 
 ```powershell
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202609300001_shop_schema.sql
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202609300002_order_operations.sql
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202610020001_delivery_details.sql
+psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/migrations/202610030001_cart_sync.sql
 psql -v ON_ERROR_STOP=1 -d $env:SUPABASE_DB_URL -f supabase/seed.sql
 ```
 
@@ -108,13 +110,57 @@ npm run build
 
 ## Behaviour to know
 
+- Website and mobile cart updates use owner-only Supabase Realtime signals, followed by a fresh authenticated cart read. The signal contains a revision, not cart or address data. The `cart_sync` table must be included in `supabase_realtime`; the migration configures this on a hosted Supabase project. Inserts/updates signal removals too, without publishing cart DELETE records. Reconnection and foreground return reload the cart; 10-second polling is a fallback. Updates are subject to network latency and Android background suspension, so keep both clients online and the app visible for the instant-sync demonstration.
+
 - Checkout requires recipient name, phone (10–15 digits), street address, city and state/FCT for Nigeria. No delivery fee is added. Validated details are stored as an immutable order snapshot and included in payment confirmation and email receipts. Edits change the checkout retry key; network retries preserve the same key and details. Delivery form values stay on screen when a request fails and are not written to browser storage.
 - **Orders** in the signed-in header opens `/orders`: ten owned orders per page, newest first, with snapshot items, totals, payment status and delivery details. Pending attempts appear as payment not confirmed and link to server verification. Old orders show that no delivery details were recorded. No shipment tracking status is implied.
 
-- Signed-in pages refresh shared account data every 10 seconds while visible and online, and when returning to the tab or reconnecting. Cart contents, the header count and checkout review use the latest server data. This is periodic synchronization, not instant delivery; simultaneous quantity edits to the same product still use the last saved value.
+- Signed-in pages refresh shared cart data after private Realtime signals, with a 10-second fallback while visible and online and a reload when returning to the tab or reconnecting. Cart contents, the header count and checkout review use the latest server data. Simultaneous quantity edits to the same product still use the last saved value.
 - Prices and totals are calculated on the server from database products, in integer kobo. The browser sends a retry key and delivery details.
 - A redirect, query string or browser message never marks an order paid; only Paystack's verify API plus an exact match of reference, amount, currency and test/live mode does.
 - If an email attempt times out, the order stays in `sending` (acceptance unknown) and is not resent automatically; check the Mailgun logs. If Mailgun rejects it, the order is `failed` and **Retry confirmation email** on the result page sends it again.
 - Product photos are from Unsplash (free for commercial use). See `context/project.md` for the photo IDs.
 
 See `context/project.md` for the product contract and build checklist, and `context/design.md` for the visual direction.
+
+## Android mobile app
+
+`mobile/` is a native Expo/React Native client for the same Next.js API and Supabase project. It includes Google login, shop, shared cart, delivery checkout, server payment verification and private order history. There is one root `package-lock.json`; run installation at the repository root. React 19.2.3 is shared by the website and Expo SDK 57 for compatibility.
+
+```powershell
+npm ci
+node scripts/configure-mobile.mjs  # creates ignored mobile/.env.local from only public website settings
+npm run mobile:typecheck
+npm run mobile:bundle             # verifies an Android JS/Hermes bundle, not an APK
+```
+
+If `mobile/.env.local` already exists, edit it directly. Its only variables are `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_SUPABASE_URL`, and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; never put server secrets in the app. Use the same Supabase URL/key as the website, and a reachable deployed API URL. `localhost` on a phone refers to the phone, not this computer. For a development build only, the API may use the computer's LAN HTTP address while both devices are on the same network. Release/preview builds require HTTPS.
+
+Before testing:
+
+1. Apply the new cart-sync migration to an existing database once (already applied and verified on the configured hosted project on 2026-10-03). Do not repeat old migrations. Deploy the updated Next.js API before pointing the app at production: the earlier deployment does not have native bearer authentication or `/api/products` and `/api/orders` yet. The phone-test APK currently uses the temporary [Preview API](https://cohort-shop-2fp9hkk5x-cyrus11s-projects.vercel.app), sharing the live website's Supabase database. This preview has only public Supabase configuration; payment initialization/verification and email sending are unavailable. Vercel Authentication was temporarily disabled with user approval for the phone test and must be restored afterward; the live custom domain was not changed.
+2. In Supabase Authentication → URL Configuration → Redirect URLs, add exactly `cohortshop://auth/callback`. Preserve both website callbacks. The mobile app opens Google in the system browser with Supabase PKCE and exchanges the returned code; it uses the same Google provider/account as the website. Tokens/verifier are saved in Android encrypted SecureStore, and bearer tokens are verified on the API server. No additional Google OAuth client is needed for this browser flow.
+3. Create a free Expo account and sign in using `npx eas-cli login`. Never put the password in source files or chat. From `mobile/`, run the commands below; `eas build:configure` links the app to your Expo account and records its project ID. Review any build quota/payment prompt before continuing.
+
+```powershell
+cd mobile
+npx eas-cli build:configure
+npx eas-cli build --platform android --profile preview  # standalone internal test APK
+```
+
+Install the resulting APK link on the physical Android phone (allow installation from that download source when Android asks). A preview APK runs without Metro. For an iterative development build, use the `development` profile instead, install its APK, then run `npm run mobile:start` at the root and connect the development client to the computer on the same network. Expo Go is not the target for the custom OAuth callback.
+
+For a machine with JDK/Android SDK installed, `npm run android --workspace @cohort-shop/mobile` can build/install locally on a USB-debugging-enabled device. Generated `mobile/android`, `mobile/ios`, `.expo` and bundles are ignored.
+
+### Required physical-phone check (still pending)
+
+The [Android test APK](https://expo.dev/artifacts/eas/_40HF_cT9zXXJsB2FYqNLiL_3Clz4gG8Wyra7kKnxh0.apk) was built successfully on 2026-10-03: EAS build `affc7cd8-46e4-4175-8f7e-150295d59729`, app version 1.0.0 / code 1. It uses the temporary Preview API above. This build is compiled successfully but physical-device results are still pending.
+
+1. Record phone model/Android version and APK build. Sign into the website and installed Android app with the exact same Google account; compare the email shown. Close/reopen the app and confirm the session is restored.
+2. Keep the app's Cart screen visible and online. Add an item on the website; record elapsed time until it appears on the phone without refresh. Repeat for quantity change and removal. Record whether the app reports live sync connected.
+3. Edit the cart on the phone and observe the website update. Background the app, edit on the website, return to the app and check it reloads. Test an offline/reconnect cycle without assuming queued cart writes.
+4. Sign the phone out and into a different controlled Google account: the previous account's cart/history must not appear. API failures must preserve the cart and delivery form.
+
+Automated type/build/mocked checks and controlled API/WebSocket checks do not replace this physical-device Google-login test. No phone test or APK installation is claimed until its observed results are recorded in `context/project.md`.
+
+References: [Expo SDK compatibility](https://docs.expo.dev/versions/v57.0.0/), [Supabase mobile deep links](https://supabase.com/docs/guides/auth/native-mobile-deep-linking), [Supabase Realtime access rules](https://supabase.com/docs/guides/realtime/authorization).

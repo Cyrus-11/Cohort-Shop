@@ -61,11 +61,14 @@ test("account sync refreshes visible online pages and cleans up listeners/timer"
     const { AccountSync } = loadComponent("account-sync", {
       react: {
         useEffect(effect) { cleanup = effect(); },
+        useRef(value) { return { current: value }; },
         useTransition() { return [pending, (action) => action()]; },
       },
+      "@/lib/supabase/browser": { createClient: () => ({}) },
+      "@/lib/cart-sync": { subscribeToCart: () => () => {} },
       "next/navigation": { useRouter: () => ({ refresh() { refreshes++; } }) },
     });
-    AccountSync();
+    AccountSync({ userId: "owner" });
     assert.equal(interval, 10_000);
     tick();
     browser.emit("focus");
@@ -87,7 +90,7 @@ test("account sync refreshes visible online pages and cleans up listeners/timer"
     assert.equal(browser.listeners.size, 0);
     assert.equal(document.listeners.size, 0);
     pending = true;
-    AccountSync();
+    AccountSync({ userId: "owner" });
     tick();
     browser.emit("focus");
     assert.equal(refreshes, 4, "An unfinished refresh is not started again");

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, isSameOrigin } from "@/lib/auth";
+import { getApiSession, isAllowedApiWrite } from "@/lib/api-session";
 import { getCart } from "@/lib/cart";
-import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,26 +24,28 @@ async function readJson(request: Request): Promise<unknown> {
   }
 }
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: Request) {
+  const session = await getApiSession(request);
+  const user = session?.user;
   if (!user) return json({ error: "Sign in to view your cart." }, 401);
   try {
-    return json(await getCart(await createClient(), user.id));
+    return json(await getCart(session!.client, user.id));
   } catch {
     return json({ error: "The cart could not be loaded. Please try again." }, 500);
   }
 }
 
 export async function PUT(request: Request) {
-  if (!isSameOrigin(request)) return json({ error: "Request not allowed." }, 403);
-  const user = await getCurrentUser();
+  if (!isAllowedApiWrite(request)) return json({ error: "Request not allowed." }, 403);
+  const session = await getApiSession(request);
+  const user = session?.user;
   if (!user) return json({ error: "Sign in to use your cart." }, 401);
   const parsed = putSchema.safeParse(await readJson(request));
   if (!parsed.success) {
     return json({ error: "Choose a product and a quantity from 1 to 99." }, 400);
   }
 
-  const supabase = await createClient();
+  const supabase = session!.client;
   const { error } = await supabase
     .from("cart_items")
     .upsert(
@@ -66,13 +67,14 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!isSameOrigin(request)) return json({ error: "Request not allowed." }, 403);
-  const user = await getCurrentUser();
+  if (!isAllowedApiWrite(request)) return json({ error: "Request not allowed." }, 403);
+  const session = await getApiSession(request);
+  const user = session?.user;
   if (!user) return json({ error: "Sign in to use your cart." }, 401);
   const parsed = deleteSchema.safeParse(await readJson(request));
   if (!parsed.success) return json({ error: "Choose a product to remove." }, 400);
 
-  const supabase = await createClient();
+  const supabase = session!.client;
   const { error } = await supabase
     .from("cart_items")
     .delete()

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, isSameOrigin } from "@/lib/auth";
+import { getApiSession, isAllowedApiWrite } from "@/lib/api-session";
 import { confirmPayment } from "@/lib/payments";
 
 export const runtime = "nodejs";
@@ -13,8 +13,8 @@ const json = (body: unknown, status = 200) =>
 const bodySchema = z.object({ reference: z.string().regex(/^[A-Za-z0-9.-]{1,100}$/) });
 
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) return json({ error: "Request not allowed." }, 403);
-  const user = await getCurrentUser();
+  if (!isAllowedApiWrite(request)) return json({ error: "Request not allowed." }, 403);
+  const user = (await getApiSession(request))?.user;
   if (!user) return json({ error: "Sign in to check a payment." }, 401);
 
   let payload: unknown;

@@ -1,8 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getOrderHistory(userId: string, page: number) {
-  const client = await createClient();
+export async function getOrderHistory(userId: string, page: number, suppliedClient?: Awaited<ReturnType<typeof createClient>>) {
+  const client = suppliedClient ?? await createClient();
   const { data, error } = await client.from("orders")
     .select("id, items, total_kobo, payment_status, payment_reference, email_status, created_at, delivery_details")
     .eq("user_id", userId)

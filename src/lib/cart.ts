@@ -2,16 +2,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
-export type CartLine = {
-  productId: string;
-  name: string;
-  imagePath: string;
-  unitPriceKobo: number;
-  quantity: number;
-  lineTotalKobo: number;
-};
-
-export type CartView = { items: CartLine[]; totalKobo: number; count: number };
+import type { CartView } from "@/lib/shop-types";
+export type { CartLine, CartView } from "@/lib/shop-types";
 
 // Reads through the user's own session, so RLS also limits rows to the owner.
 // Inactive products are hidden by RLS and therefore drop out of the inner join.
